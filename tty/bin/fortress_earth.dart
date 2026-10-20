@@ -2,15 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:fortress_earth/src/armies.dart';
 import 'package:fortress_earth/src/constants.dart' as game;
-import 'package:fortress_earth/src/data/earth_terrain.dart';
-import 'package:fortress_earth/src/shared_state.dart';
-import 'package:fortress_earth/src/simulation.dart';
-import 'package:fortress_earth/src/tile.dart';
-import 'package:fortress_earth/src/ui/game_screen.dart';
+import 'package:fortress_earth/src/new_game.dart';
 import 'package:fortress_earth/src/ui/input.dart';
-import 'package:fortress_earth/src/world.dart';
 import 'package:fortress_earth_tty/src/ansi_terminal.dart';
 import 'package:fortress_earth_tty/src/keys.dart';
 import 'package:fortress_earth_tty/src/windows_console.dart';
@@ -100,13 +94,7 @@ void _run() {
   _ui = UserInterface<Input>(_makeTerminal());
   _bindKeys(_ui);
 
-  final world = World(
-    game.mapWidth,
-    game.mapHeight,
-    (v) => Tile(v, getTerrainRoughness(v), backgroundColor: getTerrainColor(v)),
-  );
-  final sim = Simulation(world, Armies());
-  _ui.push(GameScreen(sim, UISharedState()));
+  _ui.push(newGameScreen());
 
   _ui.handlingInput = true;
   _ui.running = true;
@@ -188,7 +176,12 @@ void _tick() {
     _ui.dirty();
   }
 
-  _ui.refresh();
+  // Space pauses: the game screen stops updating, but dialogs still draw.
+  if (_ui.running) {
+    _ui.refresh();
+  } else {
+    _ui.redraw();
+  }
 }
 
 void _input(List<int> bytes) {
@@ -214,7 +207,7 @@ void _input(List<int> bytes) {
   }
 
   // Draw the result now rather than on the next tick.
-  if (!_tooSmall) _ui.refresh();
+  if (!_tooSmall) _ui.redraw();
 }
 
 void _quit() {

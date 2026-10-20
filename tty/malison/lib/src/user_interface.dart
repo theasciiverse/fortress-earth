@@ -90,6 +90,12 @@ class UserInterface<T> {
     _dirty = true;
   }
 
+  /// Draws the screens if anything changed, without updating them, for a
+  /// host whose game is paused ([running] is `false`).
+  void redraw() {
+    if (_dirty) _render();
+  }
+
   void refresh() {
     // Don't use a for-in loop here so that we don't run into concurrent
     // modification exceptions if a screen is added or removed during a call to
