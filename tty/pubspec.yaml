@@ -1,0 +1,17 @@
+name: fortress_earth_tty
+description: Fortress Earth in a text terminal.
+publish_to: none
+environment:
+  sdk: '>=3.8.0 <4.0.0'
+dependencies:
+  fortress_earth:
+    path: ..
+  malison: any
+  piecemeal: '^2.0.0'
+dependency_overrides:
+  # The browser-free malison and a silent package:howler, so the game's own
+  # library compiles natively without changes.
+  malison:
+    path: malison
+  howler:
+    path: howler_stub

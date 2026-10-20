@@ -1,0 +1,8 @@
+name: howler
+version: 2.0.0
+description: >-
+  Silent stand-in for package:howler in the native terminal build of Fortress
+  Earth. Provides the part of Howl the game uses; nothing is played.
+publish_to: none
+environment:
+  sdk: "^3.8.0"
