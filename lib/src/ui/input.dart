@@ -47,6 +47,9 @@ class Input {
   static const fullscreen = Input("fullscreen");
   static const sound = Input("sound");
 
+  /// How to play.
+  static const help = Input("help");
+
   /// Debug inputs.
   static const debugNeedGradient = Input("debugNeedGradient");
 

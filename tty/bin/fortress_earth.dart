@@ -4,9 +4,11 @@ import 'dart:io';
 
 import 'package:fortress_earth/src/constants.dart' as game;
 import 'package:fortress_earth/src/new_game.dart';
+import 'package:fortress_earth/src/ui/game_screen.dart';
 import 'package:fortress_earth/src/ui/input.dart';
 import 'package:fortress_earth_tty/src/ansi_terminal.dart';
 import 'package:fortress_earth_tty/src/keys.dart';
+import 'package:fortress_earth_tty/src/quit_dialog.dart';
 import 'package:fortress_earth_tty/src/windows_console.dart';
 import 'package:malison/malison.dart';
 import 'package:malison/malison_web.dart';
@@ -35,7 +37,8 @@ const _usage =
   --version     print the version and exit
 
 Fortress Earth draws the whole world at once and needs a terminal of at
-least ${game.width}x${game.height}. Ctrl+C or Alt+Q quits.
+least ${game.width}x${game.height}. Q or Esc on the map asks to leave;
+Ctrl+C or Alt+Q leaves at once.
 FORTRESS_EARTH_LOG=FILE writes key presses and messages to FILE.''';
 
 void main(List<String> arguments) {
@@ -189,7 +192,7 @@ void _input(List<int> bytes) {
     if (_done) return;
     _log?.writeln('key $key');
 
-    // Q is a city's key, so Alt+Q quits, with Ctrl+C.
+    // Ctrl+C and Alt+Q quit at once.
     if (key.keyCode == ctrlC || (key.alt && key.keyCode == KeyCode.q)) {
       _quit();
       return;
@@ -197,6 +200,18 @@ void _input(List<int> bytes) {
 
     // Keys wait with the game while the terminal is too small.
     if (_tooSmall) continue;
+
+    // On the map (no order being given), Q or Esc asks whether to leave.
+    // Q is Quito's key only while picking a city.
+    if (_ui.topScreen is GameScreen &&
+        !key.shift &&
+        !key.alt &&
+        (key.keyCode == KeyCode.q || key.keyCode == KeyCode.escape)) {
+      final dialog = QuitDialog(_quit);
+      _ui.push(dialog);
+      dialog.open();
+      continue;
+    }
 
     // A terminal sends no key releases and cannot report Shift held on its
     // own, so press and release it around every shifted key.
@@ -246,6 +261,11 @@ void _bindKeys(UserInterface<Input> ui) {
 
   ui.keyPress.bind(Input.fullscreen, KeyCode.f, alt: true);
   ui.keyPress.bind(Input.sound, KeyCode.s, alt: true);
+
+  // F1, ? and H show how to play.
+  ui.keyPress.bind(Input.help, f1);
+  ui.keyPress.bind(Input.help, KeyCode.slash, shift: true);
+  ui.keyPress.bind(Input.help, KeyCode.h);
 
   ui.keyPress.bind(Input.debugNeedGradient, KeyCode.n, alt: true);
   ui.keyPress.bind(Input.debugShowFramerate, KeyCode.d, alt: true);

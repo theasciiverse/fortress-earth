@@ -9,6 +9,7 @@ import 'package:fortress_earth/src/simulation.dart';
 import 'package:fortress_earth/src/ui/audio.dart';
 import 'package:fortress_earth/src/ui/dialogs/army_actions_dialog.dart';
 import 'package:fortress_earth/src/ui/dialogs/end_dialog.dart';
+import 'package:fortress_earth/src/ui/dialogs/help_dialog.dart';
 import 'package:fortress_earth/src/new_game.dart';
 import 'package:fortress_earth/src/ui/input.dart';
 import 'package:fortress_earth/src/ui/panels/armies_panel.dart';
@@ -127,6 +128,12 @@ class GameScreen extends Screen<Input> {
 
       case Input.sound:
         switchAudioOnOff();
+        break;
+
+      case Input.help:
+        final help = HelpDialog();
+        ui.push(help);
+        help.open();
         break;
 
       case Input.debugNeedGradient:

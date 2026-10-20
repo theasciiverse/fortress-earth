@@ -19,6 +19,9 @@ class KeyPress {
 /// Ctrl+C, which the terminal sends as a byte because the terminal is raw.
 const ctrlC = -1;
 
+/// F1, with the browser's key code for it (malison has no constant).
+const f1 = 112;
+
 /// Turns bytes from a raw terminal into [KeyPress]es.
 ///
 /// Escape sequences are expected to arrive whole in one read, which is how
@@ -158,7 +161,10 @@ KeyPress? _csiKey(String params, int finalByte) {
     'F' => KeyCode.numpad1,
     'E' || 'G' => KeyCode.numpad5,
     'Z' => KeyCode.tab,
+    // F1 with a modifier, as xterm sends it: ESC [ 1 ; m P.
+    'P' => f1,
     '~' => switch (parts[0]) {
+      '11' => f1,
       '1' || '7' => KeyCode.numpad7,
       '4' || '8' => KeyCode.numpad1,
       '5' => KeyCode.numpad9,
@@ -190,6 +196,7 @@ KeyPress? _ss3Key(int byte) {
     'F' => const KeyPress(KeyCode.numpad1),
     'E' => const KeyPress(KeyCode.numpad5),
     'M' => const KeyPress(KeyCode.numpadEnter),
+    'P' => const KeyPress(f1),
     _ => null,
   };
 }

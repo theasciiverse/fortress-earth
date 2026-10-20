@@ -27,6 +27,11 @@ void runGame(html.CanvasElement canvas, {void Function()? fullscreenCallback}) {
   ui.keyPress.bind(Input.fullscreen, KeyCode.f, alt: true);
   ui.keyPress.bind(Input.sound, KeyCode.s, alt: true);
 
+  // F1 (key code 112 in the browser), ? and H show how to play.
+  ui.keyPress.bind(Input.help, 112);
+  ui.keyPress.bind(Input.help, KeyCode.slash, shift: true);
+  ui.keyPress.bind(Input.help, KeyCode.h);
+
   ui.keyPress.bind(Input.debugNeedGradient, KeyCode.n, alt: true);
   ui.keyPress.bind(Input.debugShowFramerate, KeyCode.d, alt: true);
   ui.keyPress.bind(Input.debugAddCore, KeyCode.x, alt: true, shift: true);

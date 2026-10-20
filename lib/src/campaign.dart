@@ -138,7 +138,10 @@ class Campaign {
       'Press an army\'s number, then G and a city\'s letter to send it there.',
       ReportKind.info,
     );
-    _report('Space pauses.', ReportKind.info);
+    _report(
+      'Space pauses. F1 (or ?) shows how to play. Q leaves.',
+      ReportKind.info,
+    );
   }
 
   /// The status of [city] as of the last [update].
