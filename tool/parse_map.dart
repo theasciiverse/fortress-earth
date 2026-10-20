@@ -71,10 +71,10 @@ void main(List<String> args) {
       final pixel = image.getPixelCubic(imageX, imageY);
       final vecHashCode = Vec(x, y).hashCode;
       assert(pixel.format == Format.uint8);
+      // Packed as getTerrainColor() in earth_terrain.dart reads it: blue in
+      // the high byte, red in the low one.
       final rgb =
-          "${(pixel.r as int).toString().padLeft(2, '0')}"
-          "${(pixel.g as int).toString().padLeft(2, '0')}"
-          "${(pixel.b as int).toString().padLeft(2, '0')}";
+          (pixel.b as int) << 16 | (pixel.g as int) << 8 | (pixel.r as int);
       print("  $vecHashCode: $rgb,");
     }
   }
