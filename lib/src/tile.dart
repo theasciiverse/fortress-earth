@@ -133,6 +133,20 @@ class Tile {
 
   bool get isOcean => roughness == oceanRoughness;
 
+  /// The number of units of [army] on this tile.
+  int unitsOf(Army army) => _units[army] ?? 0;
+
+  /// Kills up to [count] units of [army] on this tile, as when they are cut
+  /// off from supply. Returns how many died.
+  int attrit(Army army, int count) {
+    final dying = min(unitsOf(army), count);
+    if (dying <= 0) return 0;
+    _units[army] = unitsOf(army) - dying;
+    army.bury(dying);
+    _updateGoodOrEvil(army.isEvil, -dying);
+    return dying;
+  }
+
   /// Resets the demand for [army] on this tile.
   void clearDemand(Army army) {
     _unitDemand[army] = 0;

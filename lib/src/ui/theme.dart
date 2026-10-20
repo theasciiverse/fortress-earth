@@ -7,6 +7,8 @@ class TextTheme {
   static const ok = _mummysTomb;
   static const background = _darkGunmetal;
   static const highlight = _sonicSilver;
+  static const warning = Color(200, 170, 90);
+  static const danger = Color(210, 90, 80);
 
   /// Colors from https://coolors.co/7595b7-819e85-77797b-192030-283151.
   /// Based on the colors in the map.

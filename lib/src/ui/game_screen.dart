@@ -2,15 +2,19 @@ import 'dart:collection';
 import 'dart:math';
 
 import 'package:fortress_earth/src/armies.dart';
+import 'package:fortress_earth/src/campaign.dart';
 import 'package:fortress_earth/src/constants.dart';
 import 'package:fortress_earth/src/shared_state.dart';
 import 'package:fortress_earth/src/simulation.dart';
 import 'package:fortress_earth/src/ui/audio.dart';
 import 'package:fortress_earth/src/ui/dialogs/army_actions_dialog.dart';
+import 'package:fortress_earth/src/ui/dialogs/end_dialog.dart';
+import 'package:fortress_earth/src/new_game.dart';
 import 'package:fortress_earth/src/ui/input.dart';
 import 'package:fortress_earth/src/ui/panels/armies_panel.dart';
 import 'package:fortress_earth/src/ui/panels/chat_panel.dart';
 import 'package:fortress_earth/src/ui/panels/cities_panel.dart';
+import 'package:fortress_earth/src/ui/theme.dart';
 import 'package:malison/malison.dart';
 import 'package:malison/malison_web.dart';
 import 'package:piecemeal/piecemeal.dart';
@@ -30,14 +34,29 @@ class GameScreen extends Screen<Input> {
 
   late UnitPanel _unitPanel;
 
-  final ChatPanel _chatPanel = ChatPanel(
+  late final ChatPanel _chatPanel = ChatPanel(
     mapOffsetLeft,
     mapOffsetTop + mapHeight ~/ 1.7,
     32,
     height - (mapOffsetTop + mapHeight ~/ 1.7),
+    campaign,
   );
 
-  final CitiesPanel _citiesPanel;
+  late final CitiesPanel _citiesPanel = CitiesPanel(
+    mapOffsetLeft + mapWidth - 30,
+    mapOffsetTop + mapHeight - 4,
+    30,
+    16,
+    sim.world.cities,
+    state,
+    campaign,
+  );
+
+  /// The war around the simulation: landings, cities, reports, the end.
+  final Campaign campaign;
+
+  /// Whether the end of the war has been shown.
+  bool _endShown = false;
 
   bool _showNeedGradient = false;
 
@@ -50,14 +69,7 @@ class GameScreen extends Screen<Input> {
   final List<PlayerArmy> _selectedArmies = [];
 
   GameScreen(this.sim, this.state, {this.fullscreenCallback})
-    : _citiesPanel = CitiesPanel(
-        mapOffsetLeft + mapWidth - 30,
-        mapOffsetTop + mapHeight - 4,
-        30,
-        16,
-        sim.world.cities,
-        state,
-      ) {
+    : campaign = Campaign(sim) {
     // TODO: move to field definition
     _unitPanel = UnitPanel(
       mapOffsetLeft + 50,
@@ -71,6 +83,13 @@ class GameScreen extends Screen<Input> {
 
   @override
   void activate(Screen<Input> popped, Object? result) {
+    if (popped is EndDialog) {
+      if (result == true) {
+        ui.goTo(newGameScreen(fullscreenCallback: fullscreenCallback));
+      }
+      return;
+    }
+
     if (result == null) {
       _selectedArmies.clear();
       return;
@@ -132,6 +151,8 @@ class GameScreen extends Screen<Input> {
   @override
   bool keyDown(int keyCode, {required bool shift, required bool alt}) {
     var army = _getArmyFromKeyCode(keyCode);
+    // A destroyed army takes no orders until it has regrouped.
+    if (army != null && !army.isAlive) return true;
     if (army != null) {
       assert(_selectedArmies.isEmpty);
       _selectedArmies.add(army);
@@ -266,12 +287,7 @@ class GameScreen extends Screen<Input> {
     // Cities panel.
     _citiesPanel.render(terminal);
 
-    terminal.writeAt(width - 30, 0, "  Fortress Earth - tech demo  ");
-    terminal.writeAt(
-      width - 30,
-      1,
-      "   ${sim.world.currentTime.toIso8601String()}    ",
-    );
+    _renderTitle(terminal);
 
     if (_showFramerate) {
       final renderMilliseconds = (_latestRenderTime / 1000)
@@ -288,12 +304,57 @@ class GameScreen extends Screen<Input> {
     _stopwatch.stop();
   }
 
+  static const _months = [
+    'January', 'February', 'March', 'April', 'May', 'June', //
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ];
+
+  /// The name, the date and how the war stands, top right.
+  void _renderTitle(Terminal terminal) {
+    const titleWidth = 30;
+    final x = width - titleWidth;
+    final time = sim.world.currentTime;
+    final lines = [
+      ('Fortress Earth', TextTheme.important),
+      (
+        '${_months[time.month - 1]} ${time.day}, ${time.year}',
+        TextTheme.normal,
+      ),
+      (
+        'Landings ${campaign.landed}/${Campaign.landings}  '
+            'Cities lost ${campaign.citiesLost}',
+        TextTheme.normal,
+      ),
+      if (!ui.running) ('PAUSED (Space)', TextTheme.warning),
+    ];
+    for (var i = 0; i < lines.length; i++) {
+      final (text, color) = lines[i];
+      terminal.writeAt(x, i, ' ' * titleWidth, color, Color.black);
+      terminal.writeAt(
+        x + (titleWidth - text.length) ~/ 2,
+        i,
+        text,
+        color,
+        Color.black,
+      );
+    }
+  }
+
   @override
   void update() {
     _stopwatch.reset();
     _stopwatch.start();
 
+    if (campaign.outcome != null) {
+      if (!_endShown) {
+        _endShown = true;
+        ui.push(EndDialog(campaign));
+      }
+      return;
+    }
+
     sim.update();
+    campaign.update();
 
     dirty();
 

@@ -21,11 +21,11 @@ class Simulation {
     pubSub.seal();
   }
 
-  /// Adds an enemy core to the map.
+  /// Adds an enemy core to the map, on a tile that [where] allows, if given.
   ///
   /// If no place can be found, then the method will throw in debug mode
   /// and will have no effect in production.
-  void addEnemyCore() {
+  void addEnemyCore({bool Function(Tile)? where}) {
     // Try
     Tile? tile;
     for (var i = 0; i < 100; i++) {
@@ -37,6 +37,7 @@ class Simulation {
       if (candidate.isOcean) continue;
       if (candidate.isGood) continue;
       if (candidate.isEvil) continue;
+      if (where != null && !where(candidate)) continue;
       tile = candidate;
     }
     assert(tile != null);

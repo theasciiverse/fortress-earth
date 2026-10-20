@@ -7,7 +7,8 @@ import 'package:meta/meta.dart';
 import 'package:piecemeal/piecemeal.dart';
 
 class Armies {
-  static final _defaultPlayerArmies =
+  /// A new set of the player's armies, for a new game.
+  static Map<int, PlayerArmy> _defaultPlayerArmies() =>
       Map<int, PlayerArmy>.unmodifiable(<int, PlayerArmy>{
         KeyCode.one: PlayerArmy(
           KeyCode.one,
@@ -41,7 +42,7 @@ class Armies {
         ),
       });
 
-  static final _defaultEvilArmies = <EvilArmy>[
+  static List<EvilArmy> _defaultEvilArmies() => <EvilArmy>[
     //EvilArmy("Cal Pawns", initialPosition: Vec(24, 13)),
     //EvilArmy("EU Pawns", initialPosition: Vec(70, 13)),
   ];
@@ -51,8 +52,8 @@ class Armies {
   final List<EvilArmy> evilArmies;
 
   Armies()
-    : playerArmies = _defaultPlayerArmies,
-      evilArmies = _defaultEvilArmies;
+    : playerArmies = _defaultPlayerArmies(),
+      evilArmies = _defaultEvilArmies();
 
   factory Armies.from(List<Army> source) {
     int keyCode = 'a'.codeUnitAt(0);
@@ -175,6 +176,11 @@ abstract class Army {
   /// without the need to compute the square root.
   double get _maxDeploymentRangeSquared =>
       maxDeploymentRange * maxDeploymentRange;
+
+  /// Replaces up to [count] dead units with new recruits.
+  void recruit(int count) {
+    _deadUnits -= count.clamp(0, _deadUnits);
+  }
 
   /// Marks [count] units as dead.
   void bury(int count) {
@@ -316,6 +322,20 @@ class PlayerArmy extends Army {
       _deployedAt = null;
     }
     super.setDestination(vec);
+  }
+
+  /// Brings a destroyed army back at full strength, at [position] and not
+  /// deployed anywhere, ready for orders. Its units still out in the field
+  /// stay fielded and keep fighting.
+  void reform(Vec position) {
+    assert(!isAlive);
+    isAlive = true;
+    _deadUnits = 0;
+    _deployedAt?.release(this);
+    _deployedAt = null;
+    _rangeMode = RangeMode.tight;
+    _pos = position;
+    _destination = position;
   }
 
   void setRangeMode(RangeMode rangeMode) {

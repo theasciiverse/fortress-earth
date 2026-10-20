@@ -12,7 +12,8 @@ import 'package:piecemeal/piecemeal.dart';
 final _random = Random();
 
 class World {
-  static final List<City> defaultCities = [
+  /// A new set of cities, for a new game.
+  static List<City> defaultCities() => [
     // From: http://www.freeworldmaps.net/cities/top50/top50-cities-world.png
     // (x scaled by 186/130 for the terminal map, 2026-10-20)
     City("Los Angeles", Vec(31, 15)),
@@ -45,7 +46,7 @@ class World {
     Tile Function(Vec) generator, {
     Iterable<City>? cities,
   }) : _cities = Map.fromIterable(
-         cities ?? defaultCities,
+         cities ?? defaultCities(),
          key: (dynamic c) => (c as City).pos,
        ),
        _currentTime = beginningOfPlay,
@@ -75,8 +76,14 @@ class World {
     }
   }
 
+  /// Tiles updated each tick: 100 on the original 130x43 map, kept in
+  /// proportion to the number of tiles so that each tile changes at the
+  /// same pace on a bigger map.
+  late final int _updatesPerTick = (100 * mapWidth * mapHeight / (130 * 43))
+      .round();
+
   void update(Armies armies, PubSub pubSub) {
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < _updatesPerTick; i++) {
       final x = _random.nextInt(mapWidth);
       final y = _random.nextInt(mapHeight);
       final vec = Vec(x, y);
