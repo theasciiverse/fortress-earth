@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:fortress_earth/src/random.dart';
 import 'package:fortress_earth/src/armies.dart';
 import 'package:fortress_earth/src/city.dart';
 import 'package:fortress_earth/src/constants.dart';
@@ -9,7 +10,7 @@ import 'package:fortress_earth/src/tile.dart';
 import 'package:malison/malison.dart';
 import 'package:piecemeal/piecemeal.dart';
 
-final _random = Random();
+Random get _random => gameRandom;
 
 class World {
   /// A new set of cities, for a new game.

@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:math';
 
 import 'package:fortress_earth/src/armies.dart';
+import 'package:fortress_earth/src/autopilot.dart';
 import 'package:fortress_earth/src/campaign.dart';
 import 'package:fortress_earth/src/constants.dart';
 import 'package:fortress_earth/src/shared_state.dart';
@@ -69,7 +70,14 @@ class GameScreen extends Screen<Input> {
 
   final List<PlayerArmy> _selectedArmies = [];
 
-  GameScreen(this.sim, this.state, {this.fullscreenCallback})
+  /// Plays the war by itself (`--demo`), when set.
+  final Autopilot? autopilot;
+
+  /// Whether to draw the panels and the title over the map. A host that
+  /// lays the screen out itself (the terminal's `--preview`) turns it off.
+  bool drawPanels = true;
+
+  GameScreen(this.sim, this.state, {this.fullscreenCallback, this.autopilot})
     : campaign = Campaign(sim) {
     // TODO: move to field definition
     _unitPanel = UnitPanel(
@@ -86,7 +94,12 @@ class GameScreen extends Screen<Input> {
   void activate(Screen<Input> popped, Object? result) {
     if (popped is EndDialog) {
       if (result == true) {
-        ui.goTo(newGameScreen(fullscreenCallback: fullscreenCallback));
+        ui.goTo(
+          newGameScreen(
+            fullscreenCallback: fullscreenCallback,
+            demo: autopilot != null,
+          ),
+        );
       }
       return;
     }
@@ -285,6 +298,12 @@ class GameScreen extends Screen<Input> {
       );
     }
 
+    if (!drawPanels) {
+      _latestRenderTime = _stopwatch.elapsedMicroseconds;
+      _stopwatch.stop();
+      return;
+    }
+
     // Army table / panel.
     _unitPanel.render(terminal);
 
@@ -362,6 +381,7 @@ class GameScreen extends Screen<Input> {
 
     sim.update();
     campaign.update();
+    autopilot?.update();
 
     dirty();
 

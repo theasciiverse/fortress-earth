@@ -1,12 +1,13 @@
 import 'dart:math';
 
+import 'package:fortress_earth/src/random.dart';
 import 'package:fortress_earth/src/armies.dart';
 import 'package:fortress_earth/src/pub_sub.dart';
 import 'package:fortress_earth/src/tile.dart';
 import 'package:fortress_earth/src/world.dart';
 import 'package:piecemeal/piecemeal.dart';
 
-Random _random = Random();
+Random get _random => gameRandom;
 
 class Simulation {
   final World world;

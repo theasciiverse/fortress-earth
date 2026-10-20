@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:fortress_earth/src/random.dart';
 import 'package:fortress_earth/src/armies.dart';
 import 'package:fortress_earth/src/city.dart';
 import 'package:fortress_earth/src/constants.dart';
@@ -8,7 +9,7 @@ import 'package:fortress_earth/src/pub_sub.dart';
 import 'package:malison/malison.dart';
 import 'package:piecemeal/piecemeal.dart';
 
-final _random = Random();
+Random get _random => gameRandom;
 
 /// Once we know the attack will succeed, this function returns the exact
 /// results.

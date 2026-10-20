@@ -4,10 +4,12 @@ import 'dart:io';
 
 import 'package:fortress_earth/src/constants.dart' as game;
 import 'package:fortress_earth/src/new_game.dart';
+import 'package:fortress_earth/src/random.dart';
 import 'package:fortress_earth/src/ui/game_screen.dart';
 import 'package:fortress_earth/src/ui/input.dart';
 import 'package:fortress_earth_tty/src/ansi_terminal.dart';
 import 'package:fortress_earth_tty/src/keys.dart';
+import 'package:fortress_earth_tty/src/preview_terminal.dart';
 import 'package:fortress_earth_tty/src/quit_dialog.dart';
 import 'package:fortress_earth_tty/src/windows_console.dart';
 import 'package:malison/malison.dart';
@@ -28,12 +30,34 @@ int _lines = 0;
 bool _tooSmall = false;
 
 WindowsConsole? _windowsConsole;
+
+/// `--demo`: the computer plays.
+bool _demo = false;
+
+/// `--preview`: the 100x30 view for the catalog preview.
+bool _preview = false;
+
+/// `--quit-after SECONDS`: end by itself, for recordings.
+Duration? _quitAfter;
+
+/// The game screen last seen on top, for the preview's reports and date.
+GameScreen? _game;
+
+/// The smallest terminal: the whole screen, or the preview's view.
+int get _minWidth => _preview ? PreviewTerminal.viewWidth : game.width;
+int get _minHeight => _preview ? PreviewTerminal.viewHeight : game.height;
 Timer? _timer;
 bool _done = false;
 
 const _usage =
     '''Usage: fortress-earth [options]
 
+  --demo        watch the computer fight the war
+  --preview     the 100x30 view recorded for the catalog: reports and a
+                window of the map that follows the war
+  --seed N      seed the random numbers, for a repeatable war
+  --quit-after SECONDS
+                quit by itself after this long, for recordings
   --version     print the version and exit
 
 Fortress Earth draws the whole world at once and needs a terminal of at
@@ -42,16 +66,36 @@ Ctrl+C or Alt+Q leaves at once.
 FORTRESS_EARTH_LOG=FILE writes key presses and messages to FILE.''';
 
 void main(List<String> arguments) {
-  for (var argument in arguments) {
-    switch (argument) {
+  for (var i = 0; i < arguments.length; i++) {
+    switch (arguments[i]) {
       case '--version':
         stdout.writeln('fortress-earth (terminal build)');
         return;
       case '--help' || '-h':
         stdout.writeln(_usage);
         return;
+      case '--demo':
+        _demo = true;
+      case '--preview':
+        _preview = true;
+      case '--seed' when i + 1 < arguments.length:
+        var seed = int.tryParse(arguments[++i]);
+        if (seed == null) {
+          stderr.writeln('--seed needs a number.');
+          exitCode = 2;
+          return;
+        }
+        seedGameRandom(seed);
+      case '--quit-after' when i + 1 < arguments.length:
+        var seconds = double.tryParse(arguments[++i]);
+        if (seconds == null || seconds <= 0) {
+          stderr.writeln('--quit-after needs a number of seconds.');
+          exitCode = 2;
+          return;
+        }
+        _quitAfter = Duration(milliseconds: (seconds * 1000).round());
       default:
-        stderr.writeln('Unknown option $argument.\n\n$_usage');
+        stderr.writeln('Unknown option ${arguments[i]}.\n\n$_usage');
         exitCode = 2;
         return;
     }
@@ -97,7 +141,7 @@ void _run() {
   _ui = UserInterface<Input>(_makeTerminal());
   _bindKeys(_ui);
 
-  _ui.push(newGameScreen());
+  _ui.push(newGameScreen(demo: _demo));
 
   _ui.handlingInput = true;
   _ui.running = true;
@@ -112,6 +156,8 @@ void _run() {
     ProcessSignal.sighup.watch().listen((_) => _quit());
   }
 
+  if (_quitAfter case var after?) Timer(after, _quit);
+
   _timer = Timer.periodic(
     Duration(microseconds: 1000000 ~/ _ui.framesPerSecond),
     (_) => _tick(),
@@ -119,25 +165,27 @@ void _run() {
   _tick();
 }
 
-/// A terminal of the game's fixed size, centred in the real one.
-AnsiTerminal _makeTerminal() {
+/// A terminal of the game's fixed size, or the preview's view, centred in
+/// the real one.
+RenderableTerminal _makeTerminal() {
   _columns = stdout.terminalColumns;
   _lines = stdout.terminalLines;
-  var terminal = AnsiTerminal(
-    game.width,
-    game.height,
-    stdout,
-    originX: ((_columns - game.width) ~/ 2).clamp(0, _columns),
-    originY: ((_lines - game.height) ~/ 2).clamp(0, _lines),
-  );
   _log?.writeln('terminal ${_columns}x$_lines');
-  return terminal;
+  var out = AnsiTerminal(
+    _minWidth,
+    _minHeight,
+    stdout,
+    originX: ((_columns - _minWidth) ~/ 2).clamp(0, _columns),
+    originY: ((_lines - _minHeight) ~/ 2).clamp(0, _lines),
+  );
+  if (!_preview) return out;
+  return PreviewTerminal(out, () => _game?.campaign);
 }
 
 /// Shows how big the terminal needs to be, centred.
 void _showTooSmall() {
   var lines = [
-    'Fortress Earth needs a terminal of at least ${game.width}x${game.height}.',
+    'Fortress Earth needs a terminal of at least ${_minWidth}x$_minHeight.',
     'This one is ${_columns}x$_lines. Make the window bigger',
     'or the font smaller, or press Ctrl+C to quit.',
   ];
@@ -161,7 +209,7 @@ void _tick() {
   var lines = stdout.terminalLines;
   var resized = columns != _columns || lines != _lines;
 
-  if (columns < game.width || lines < game.height) {
+  if (columns < _minWidth || lines < _minHeight) {
     if (!_tooSmall || resized) {
       _tooSmall = true;
       _columns = columns;
@@ -177,6 +225,12 @@ void _tick() {
     // A new terminal draws every cell, at the new centre.
     _ui.setTerminal(_makeTerminal());
     _ui.dirty();
+  }
+
+  // The preview lays the screen out itself, from the game's map and panels.
+  if (_ui.topScreen case GameScreen screen) {
+    _game = screen;
+    if (_preview) screen.drawPanels = false;
   }
 
   // Space pauses: the game screen stops updating, but dialogs still draw.
