@@ -14,18 +14,19 @@ final _random = Random();
 class World {
   static final List<City> defaultCities = [
     // From: http://www.freeworldmaps.net/cities/top50/top50-cities-world.png
-    City("Los Angeles", Vec(22, 15)),
-    City("New York", Vec(39, 13)),
-    City("Paris", Vec(66, 12)),
-    City("Moscow", Vec(76, 10)),
-    City("Beijing", Vec(109, 13)),
-    City("Delhi", Vec(92, 18)),
-    City("Jakarta", Vec(105, 26)),
-    City("Cairo", Vec(77, 17)),
-    City("Kinshasa", Vec(70, 26)),
-    City("Sao Paulo", Vec(49, 31)),
-    City("Quito", Vec(37, 26)),
-    City("Sydney", Vec(119, 35), keyCode: KeyCode.y),
+    // (x scaled by 186/130 for the terminal map, 2026-10-20)
+    City("Los Angeles", Vec(31, 15)),
+    City("New York", Vec(56, 13)),
+    City("Paris", Vec(94, 12)),
+    City("Moscow", Vec(109, 10)),
+    City("Beijing", Vec(156, 13)),
+    City("Delhi", Vec(132, 18)),
+    City("Jakarta", Vec(150, 26)),
+    City("Cairo", Vec(110, 17)),
+    City("Kinshasa", Vec(100, 26)),
+    City("Sao Paulo", Vec(70, 31)),
+    City("Quito", Vec(53, 26)),
+    City("Sydney", Vec(170, 35), keyCode: KeyCode.y),
   ];
 
   final int mapWidth;

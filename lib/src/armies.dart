@@ -13,13 +13,13 @@ class Armies {
           KeyCode.one,
           "Marines",
           Color.lightGreen,
-          initialDestination: Vec(92, 18),
+          initialDestination: Vec(132, 18),
         ),
         KeyCode.two: PlayerArmy(
           KeyCode.two,
           "Marines",
           Color.lightGreen,
-          initialDestination: Vec(37, 26),
+          initialDestination: Vec(53, 26),
         ),
         KeyCode.three: PlayerArmy(KeyCode.three, "Marines", Color.lightGreen),
         KeyCode.four: PlayerArmy(KeyCode.four, "Infantry", Color.lightBlue),
@@ -30,14 +30,14 @@ class Armies {
           KeyCode.eight,
           "Squad",
           Color.lightPurple,
-          initialDestination: Vec(77, 17),
+          initialDestination: Vec(110, 17),
         ),
         KeyCode.nine: PlayerArmy(KeyCode.nine, "Squad", Color.lightPurple),
         KeyCode.zero: PlayerArmy(
           KeyCode.zero,
           "HQ",
           Color.lightGold,
-          initialDestination: Vec(39, 13),
+          initialDestination: Vec(56, 13),
         ),
       });
 
@@ -258,7 +258,7 @@ class PlayerArmy extends Army {
     this.keyCode,
     String name,
     Color color, {
-    Vec initialPosition = const Vec(50, 18),
+    Vec initialPosition = const Vec(72, 18),
     Vec? initialDestination,
   }) : super._(
          name,

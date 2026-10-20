@@ -23,7 +23,7 @@ const mapWidth = width;
 const oceanRoughness = 0xFFFFFF;
 
 /// Width of the whole UI.
-const width = 130;
+const width = 186;
 
 /// The first day of play.
 final beginningOfPlay = DateTime.utc(2014, 9, 1);
