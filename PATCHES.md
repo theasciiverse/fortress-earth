@@ -64,3 +64,9 @@ Build: `cd tty && dart pub get && dart compile exe bin/fortress_earth.dart
 into THIRD-PARTY-LICENSES.txt. `asciiverse/record-preview.sh` records
 `asciiverse/fortress-earth.cast`, the catalog preview: `--demo --preview`
 at 100x30, seed 1, 55 seconds.
+
+## Ours
+
+- **How to play it, at the top of README.md.** A short note on installing and
+  starting it with av, or from a release archive; the original text follows
+  unchanged.

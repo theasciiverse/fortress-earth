@@ -1,3 +1,16 @@
+> **Play it with Asciiverse.** With [av](https://asciiverse.sh), the Asciiverse
+> client:
+>
+> ```
+> av install fortress-earth
+> av play fortress-earth
+> ```
+>
+> Or download the archive for your system from this repository's Releases,
+> unpack it and run `./fortress-earth` (`fortress-earth.exe` on Windows).
+>
+> The original README follows.
+
 [![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
 
 # Fortress Earth
