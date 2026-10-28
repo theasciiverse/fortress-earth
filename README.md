@@ -6,9 +6,6 @@
 > av play fortress-earth
 > ```
 >
-> Or download the archive for your system from this repository's Releases,
-> unpack it and run `./fortress-earth`.
->
 > The original README follows.
 
 [![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
